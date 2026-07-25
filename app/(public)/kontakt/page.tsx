@@ -16,7 +16,6 @@ export default function KontaktPage() {
     <section className="container-page py-20">
       <p className="text-xs uppercase tracking-[0.3em] text-accent">Kontakt</p>
       <h1 className="mt-3 font-serif text-4xl sm:text-5xl md:text-6xl">Anfahrt & Kontakt</h1>
-      <p className="mt-2 text-xs text-muted-foreground">Demo-Angaben – vor Veröffentlichung prüfen.</p>
 
       <div className="mt-12 grid gap-10 md:grid-cols-2">
         <div className="space-y-5 text-sm">

@@ -29,10 +29,12 @@ export function ReservationActionsPanel({
   reservation,
   seatingAreas,
   role,
+  userId,
 }: {
   reservation: Reservation;
   seatingAreas: SeatingArea[];
   role: UserRole;
+  userId: string;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -40,7 +42,7 @@ export function ReservationActionsPanel({
   async function updateStatus(status: ReservationStatus) {
     setPending(true);
     try {
-      await reservationRepository.updateStatus(reservation.id, status);
+      await reservationRepository.updateStatus(reservation.id, status, userId);
       toast.success("Status aktualisiert");
       router.refresh();
     } catch {
@@ -53,7 +55,7 @@ export function ReservationActionsPanel({
   async function assignArea(seatingAreaId: string) {
     setPending(true);
     try {
-      await reservationRepository.update(reservation.id, { seatingAreaId });
+      await reservationRepository.update(reservation.id, { seatingAreaId, updatedBy: userId });
       router.refresh();
     } catch {
       toast.error("Bereich konnte nicht zugewiesen werden.");
@@ -74,11 +76,13 @@ export function ReservationActionsPanel({
     router.refresh();
   }
 
-  async function hardDelete() {
-    await reservationRepository.hardDelete(reservation.id);
-    toast.success("Endgültig gelöscht");
-    router.push("/staff/reservierungen");
-  }
+  // Deliberately NOT wired to reservationRepository.hardDelete() yet. Managers
+  // and Admins must never be able to permanently delete a record directly —
+  // permanent delete is prepared here as a future Admin-only action that
+  // still needs additional backend safeguards (e.g. a second confirmation
+  // step, a mandatory reason, and a server-side check that this isn't
+  // reachable without ADMIN + an active Auth.js session) before it can ever
+  // actually run.
 
   return (
     <div className="mt-4 space-y-3">
@@ -155,26 +159,20 @@ export function ReservationActionsPanel({
       )}
 
       <PermissionGate role={role} perm="reservation.hardDelete">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" className="w-full border border-destructive bg-transparent text-destructive hover:bg-destructive/10">
-              <Trash2 className="mr-2 h-4 w-4" /> Endgültig löschen
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Endgültig und unwiderruflich löschen?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Anders als „Löschen“ kann diese Aktion NICHT rückgängig gemacht werden — auch nicht von einem
-                Administrator. Alle Daten dieser Reservation gehen dauerhaft verloren.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-              <AlertDialogAction onClick={hardDelete}>Endgültig löschen</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <div className="rounded-md border border-dashed border-destructive/30 p-3">
+          <Button
+            variant="destructive"
+            className="w-full border border-destructive bg-transparent text-destructive opacity-60"
+            disabled
+          >
+            <Trash2 className="mr-2 h-4 w-4" /> Endgültig löschen
+          </Button>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Noch nicht verfügbar. Endgültiges Löschen bleibt eine zukünftige Admin-Aktion und erfordert zusätzliche
+            Backend-Sicherheitsmassnahmen (zweite Bestätigung, Pflichtbegründung, serverseitige Prüfung), bevor sie
+            aktiv geschaltet wird. Bis dahin: Reservationen nur löschen (wiederherstellbar), nie endgültig entfernen.
+          </p>
+        </div>
       </PermissionGate>
     </div>
   );

@@ -34,7 +34,11 @@ export default async function SitzbereichePage() {
       notifications={notifications}
       title="Sitzbereiche"
       description="Räume, Kapazitäten und Verfügbarkeit"
-      actions={can(user.role, "seating.manage") ? <SeatingAreaCreateDialog nextDisplayOrder={areas.length + 1} /> : undefined}
+      actions={
+        can(user.role, "seating.manage") ? (
+          <SeatingAreaCreateDialog nextDisplayOrder={areas.length + 1} currentUserId={user.id} />
+        ) : undefined
+      }
     >
       <div className="grid gap-4 md:grid-cols-2">
         {areas.map((a, i) => (
@@ -45,6 +49,7 @@ export default async function SitzbereichePage() {
             futureReservationCount={upcomingReservations.filter((r) => r.seatingAreaId === a.id).length}
             prevArea={areas[i - 1]}
             nextArea={areas[i + 1]}
+            currentUserId={user.id}
           />
         ))}
       </div>

@@ -31,12 +31,14 @@ export function SeatingAreaCard({
   futureReservationCount,
   prevArea,
   nextArea,
+  currentUserId,
 }: {
   area: SeatingArea;
   role: UserRole;
   futureReservationCount: number;
   prevArea?: SeatingArea;
   nextArea?: SeatingArea;
+  currentUserId: string;
 }) {
   const router = useRouter();
   const [confirmClose, setConfirmClose] = useState(false);
@@ -54,32 +56,32 @@ export function SeatingAreaCard({
       setConfirmClose(true);
       return;
     }
-    await seatingAreaRepository.update(area.id, { currentlyOpen: open });
+    await seatingAreaRepository.update(area.id, { currentlyOpen: open, updatedBy: currentUserId });
     router.refresh();
   }
 
   async function confirmCloseAnyway() {
-    await seatingAreaRepository.update(area.id, { currentlyOpen: false });
+    await seatingAreaRepository.update(area.id, { currentlyOpen: false, updatedBy: currentUserId });
     setConfirmClose(false);
     router.refresh();
   }
 
   async function togglePubliclyBookable(value: boolean) {
-    await seatingAreaRepository.update(area.id, { publiclyBookable: value });
+    await seatingAreaRepository.update(area.id, { publiclyBookable: value, updatedBy: currentUserId });
     router.refresh();
   }
 
   async function swapWith(neighbor: SeatingArea | undefined) {
     if (!neighbor) return;
     await Promise.all([
-      seatingAreaRepository.update(area.id, { displayOrder: neighbor.displayOrder }),
-      seatingAreaRepository.update(neighbor.id, { displayOrder: area.displayOrder }),
+      seatingAreaRepository.update(area.id, { displayOrder: neighbor.displayOrder, updatedBy: currentUserId }),
+      seatingAreaRepository.update(neighbor.id, { displayOrder: area.displayOrder, updatedBy: currentUserId }),
     ]);
     router.refresh();
   }
 
   async function saveEdit() {
-    await seatingAreaRepository.update(area.id, form);
+    await seatingAreaRepository.update(area.id, { ...form, updatedBy: currentUserId });
     toast.success("Sitzbereich aktualisiert");
     setEditOpen(false);
     router.refresh();

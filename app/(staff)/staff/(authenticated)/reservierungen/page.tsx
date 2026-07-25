@@ -64,7 +64,7 @@ export default async function ReservierungenPage({
       </Card>
 
       <div className="mt-4">
-        <NewReservationDialog seatingAreas={seatingAreas} />
+        <NewReservationDialog seatingAreas={seatingAreas} currentUserId={user.id} />
       </div>
 
       <Card className="mt-4">

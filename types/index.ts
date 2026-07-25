@@ -21,6 +21,9 @@ export interface User {
   invitationStatus?: InvitationStatus;
   lastLoginAt?: ISODateTime;
   createdAt: ISODateTime;
+  invitedBy?: UUID; // audit: who created the invitation
+  updatedBy?: UUID; // audit: who last changed role/status
+  updatedAt?: ISODateTime;
 }
 
 export interface Session {
@@ -84,6 +87,8 @@ export interface Reservation {
   status: ReservationStatus;
   source: ReservationSource;
   assignedEmployeeId?: UUID;
+  createdBy?: UUID; // audit: staff member who entered it (unset for guest-submitted WEBSITE reservations)
+  updatedBy?: UUID; // audit: staff member who last changed it
   createdAt: ISODateTime;
   updatedAt: ISODateTime;
   deletedAt?: ISODateTime;
@@ -129,6 +134,10 @@ export interface SeatingArea {
   publiclyBookable: boolean;
   currentlyOpen: boolean;
   displayOrder: number;
+  createdBy?: UUID;
+  createdAt?: ISODateTime;
+  updatedBy?: UUID;
+  updatedAt?: ISODateTime;
 }
 
 // -------- Opening hours --------
@@ -146,6 +155,8 @@ export interface DailyOpeningHours {
   slots: OpeningSlot[];
   bookingSlots?: OpeningSlot[];
   note?: string;
+  updatedBy?: UUID;
+  updatedAt?: ISODateTime;
 }
 
 export interface SpecialOpeningDate {
@@ -178,10 +189,19 @@ export interface AuditLog {
   id: UUID;
   actorId: UUID;
   actorName: string;
+  actorRole?: UserRole;
   action: AuditAction;
   entityType: "Reservation" | "Event" | "User" | "SeatingArea" | "OpeningHours";
   entityId: UUID;
   summary: string;
+  // Field-level change detail, for entries that represent a single field
+  // edit (status change, seating reassignment, etc.) rather than a
+  // create/delete-type event. Mirrors what a future Prisma AuditLog row
+  // would carry so the admin timeline UI needs no changes when it does.
+  field?: string;
+  oldValue?: string;
+  newValue?: string;
+  comment?: string;
   details?: Record<string, unknown>;
   createdAt: ISODateTime;
 }

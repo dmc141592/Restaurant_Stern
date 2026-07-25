@@ -34,7 +34,7 @@ export const openingHoursRepository = {
     await tick();
     const i = weekly.findIndex((d) => d.weekday === weekday);
     if (i < 0) throw new Error("Weekday not found");
-    weekly[i] = { ...weekly[i], ...patch };
+    weekly[i] = { ...weekly[i], ...patch, updatedAt: new Date().toISOString() };
     return weekly[i];
   },
   async getSpecialDates(): Promise<SpecialOpeningDate[]> {

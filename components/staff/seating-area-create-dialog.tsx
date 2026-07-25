@@ -10,7 +10,13 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { seatingAreaRepository } from "@/repositories/seating-area-repository";
 
-export function SeatingAreaCreateDialog({ nextDisplayOrder }: { nextDisplayOrder: number }) {
+export function SeatingAreaCreateDialog({
+  nextDisplayOrder,
+  currentUserId,
+}: {
+  nextDisplayOrder: number;
+  currentUserId: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", capacity: 20, minPartySize: 1, maxPartySize: 12 });
@@ -22,6 +28,10 @@ export function SeatingAreaCreateDialog({ nextDisplayOrder }: { nextDisplayOrder
       publiclyBookable: false,
       currentlyOpen: true,
       displayOrder: nextDisplayOrder,
+      createdBy: currentUserId,
+      createdAt: new Date().toISOString(),
+      updatedBy: currentUserId,
+      updatedAt: new Date().toISOString(),
     });
     toast.success("Sitzbereich erstellt");
     setForm({ name: "", description: "", capacity: 20, minPartySize: 1, maxPartySize: 12 });

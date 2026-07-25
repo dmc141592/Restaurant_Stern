@@ -16,9 +16,11 @@ import type { ReservationStatus } from "@/types";
 export function QuickStatusSelect({
   reservationId,
   status,
+  currentUserId,
 }: {
   reservationId: string;
   status: ReservationStatus;
+  currentUserId: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -28,7 +30,7 @@ export function QuickStatusSelect({
     const nextStatus = next as ReservationStatus;
     setValue(nextStatus);
     try {
-      await reservationRepository.updateStatus(reservationId, nextStatus);
+      await reservationRepository.updateStatus(reservationId, nextStatus, currentUserId);
       toast.success("Status aktualisiert");
       startTransition(() => router.refresh());
     } catch {

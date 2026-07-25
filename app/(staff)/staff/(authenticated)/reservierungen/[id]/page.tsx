@@ -7,13 +7,17 @@ import { StatusBadge } from "@/components/staff/status-badge";
 import { CopyButton } from "@/components/staff/copy-button";
 import { ReservationNotesPanel } from "@/components/staff/reservation-notes-panel";
 import { ReservationActionsPanel } from "@/components/staff/reservation-actions-panel";
+import { AuditMeta } from "@/components/staff/audit-meta";
+import { AuditTimeline } from "@/components/staff/audit-timeline";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { requireDemoSession } from "@/lib/demo-session";
+import { can } from "@/lib/permissions";
 import { reservationRepository } from "@/repositories/reservation-repository";
 import { seatingAreaRepository } from "@/repositories/seating-area-repository";
 import { userRepository } from "@/repositories/user-repository";
 import { notificationRepository } from "@/repositories/notification-repository";
+import { auditLogRepository } from "@/repositories/audit-log-repository";
 
 export const metadata: Metadata = {
   title: "Reservation – Sternen Portal",
@@ -27,14 +31,22 @@ export default async function ReservationDetailPage({ params }: { params: Promis
   const reservation = await reservationRepository.findById(id);
   if (!reservation) notFound();
 
-  const [notes, seatingAreas, assignedEmployee, notifications] = await Promise.all([
+  const canSeeFullHistory = can(user.role, "audit.viewAll");
+
+  const [notes, seatingAreas, assignedEmployee, notifications, allUsers, changeHistory] = await Promise.all([
     reservationRepository.listNotesFor(reservation.id),
     seatingAreaRepository.findMany(),
     reservation.assignedEmployeeId ? userRepository.findById(reservation.assignedEmployeeId) : Promise.resolve(undefined),
     notificationRepository.findAll(),
+    userRepository.findMany(),
+    canSeeFullHistory ? auditLogRepository.findByEntity("Reservation", reservation.id) : Promise.resolve([]),
   ]);
 
   const area = seatingAreas.find((a) => a.id === reservation.seatingAreaId);
+  const userName = (id?: string) => {
+    const u = allUsers.find((candidate) => candidate.id === id);
+    return u ? `${u.firstName} ${u.lastName}` : undefined;
+  };
 
   return (
     <StaffShell
@@ -120,20 +132,40 @@ export default async function ReservationDetailPage({ params }: { params: Promis
           <Card>
             <CardContent className="p-6">
               <h3 className="font-serif text-xl">Aktionen</h3>
-              <ReservationActionsPanel reservation={reservation} seatingAreas={seatingAreas} role={user.role} />
+              <ReservationActionsPanel reservation={reservation} seatingAreas={seatingAreas} role={user.role} userId={user.id} />
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6">
               <h3 className="font-serif text-xl">Verlauf</h3>
-              <ul className="mt-3 space-y-2 text-xs text-muted-foreground">
-                <li>Erstellt {new Date(reservation.createdAt).toLocaleString("de-CH")}</li>
-                <li>Aktualisiert {new Date(reservation.updatedAt).toLocaleString("de-CH")}</li>
-                {reservation.deletedAt && <li>Gelöscht {new Date(reservation.deletedAt).toLocaleString("de-CH")}</li>}
-              </ul>
+              <div className="mt-3">
+                <AuditMeta
+                  createdByName={userName(reservation.createdBy)}
+                  createdAt={reservation.createdAt}
+                  updatedByName={userName(reservation.updatedBy)}
+                  updatedAt={reservation.updatedAt}
+                />
+              </div>
+              {reservation.deletedAt && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Gelöscht {new Date(reservation.deletedAt).toLocaleString("de-CH")}
+                </p>
+              )}
             </CardContent>
           </Card>
+
+          {canSeeFullHistory && (
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-serif text-xl">Änderungsverlauf</h3>
+                <p className="text-xs text-muted-foreground">Nur für Administratoren sichtbar.</p>
+                <div className="mt-4">
+                  <AuditTimeline entries={changeHistory} />
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </StaffShell>

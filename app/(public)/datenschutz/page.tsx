@@ -14,9 +14,6 @@ export default function DatenschutzPage() {
   return (
     <section className="container-page max-w-3xl py-20">
       <h1 className="font-serif text-4xl">Datenschutz</h1>
-      <p className="mt-2 text-xs text-muted-foreground">
-        Demo-Text – rechtsverbindliche Fassung vor Veröffentlichung erstellen.
-      </p>
       <div className="prose prose-neutral mt-8 space-y-4 text-sm text-muted-foreground">
         <p>
           Wir behandeln Ihre Daten vertraulich und ausschliesslich zur Abwicklung Ihrer Reservation und Anfragen.

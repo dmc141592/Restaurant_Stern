@@ -21,7 +21,6 @@ export default function SpeisekartePage() {
       <p className="mt-4 max-w-2xl text-muted-foreground">
         Wir aktualisieren unsere Karte laufend. Hier eine Auswahl – Verfügbarkeit und Preise können sich ändern.
       </p>
-      <p className="mt-2 text-xs text-muted-foreground">Demo-Inhalt – vor Veröffentlichung prüfen.</p>
 
       <div className="mt-12 space-y-14">
         {mockMenu.map((cat) => (

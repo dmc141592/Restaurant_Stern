@@ -18,6 +18,7 @@ import { StaffShell } from "@/components/staff/staff-shell";
 import { StatusBadge } from "@/components/staff/status-badge";
 import { NewReservationDialog } from "@/components/staff/new-reservation-dialog";
 import { QuickStatusSelect } from "@/components/staff/quick-status-select";
+import { ActivityFeed } from "@/components/staff/activity-feed";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import { can } from "@/lib/permissions";
 import { reservationRepository } from "@/repositories/reservation-repository";
 import { seatingAreaRepository } from "@/repositories/seating-area-repository";
 import { notificationRepository } from "@/repositories/notification-repository";
+import { auditLogRepository } from "@/repositories/audit-log-repository";
 import { getDashboardStatistics } from "@/repositories/dashboard-service";
 
 export const metadata: Metadata = {
@@ -37,11 +39,12 @@ export default async function DashboardPage() {
   const { user } = await requireDemoSession();
   const today = format(new Date(), "yyyy-MM-dd");
 
-  const [stats, todaysReservations, seatingAreas, notifications] = await Promise.all([
+  const [stats, todaysReservations, seatingAreas, notifications, activity] = await Promise.all([
     getDashboardStatistics(today),
     reservationRepository.findMany({ from: today, to: today }),
     seatingAreaRepository.findMany(),
     notificationRepository.findAll(),
+    auditLogRepository.findRecent(6, { includeUserEntity: can(user.role, "audit.viewAll") }),
   ]);
 
   const sorted = [...todaysReservations].sort((a, b) => a.time.localeCompare(b.time));
@@ -120,7 +123,7 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                     <StatusBadge status={r.status} />
-                    <QuickStatusSelect reservationId={r.id} status={r.status} />
+                    <QuickStatusSelect reservationId={r.id} status={r.status} currentUserId={user.id} />
                   </div>
                 );
               })}
@@ -132,7 +135,7 @@ export default async function DashboardPage() {
           <CardContent className="p-5">
             <h2 className="font-serif text-xl">Schnellaktionen</h2>
             <div className="mt-4 space-y-2">
-              <NewReservationDialog seatingAreas={seatingAreas} />
+              <NewReservationDialog seatingAreas={seatingAreas} currentUserId={user.id} />
               {can(user.role, "event.create") && (
                 <Button asChild variant="outline" className="w-full justify-start">
                   <Link href="/staff/events/new">Event erstellen</Link>
@@ -147,6 +150,16 @@ export default async function DashboardPage() {
               <Button asChild variant="outline" className="w-full justify-start">
                 <Link href="/staff/analytics">Statistiken ansehen</Link>
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-3">
+          <CardContent className="p-5">
+            <h2 className="font-serif text-xl">Letzte Aktivität</h2>
+            <p className="text-xs text-muted-foreground">Mock-Daten — später direkt aus dem Audit-Log.</p>
+            <div className="mt-4">
+              <ActivityFeed entries={activity} />
             </div>
           </CardContent>
         </Card>

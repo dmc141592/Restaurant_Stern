@@ -26,7 +26,10 @@ export const seatingAreaRepository = {
     await tick();
     const i = seatingAreas.findIndex((a) => a.id === id);
     if (i < 0) throw new Error("Seating area not found");
-    seatingAreas[i] = { ...seatingAreas[i], ...patch };
+    // Auto-stamp updatedAt so "last modified at" is always accurate even if
+    // a caller forgets to pass it explicitly; updatedBy still needs to come
+    // from the caller (it knows the acting user, this file doesn't).
+    seatingAreas[i] = { ...seatingAreas[i], ...patch, updatedAt: new Date().toISOString() };
     return seatingAreas[i];
   },
   async create(input: Omit<SeatingArea, "id">): Promise<SeatingArea> {

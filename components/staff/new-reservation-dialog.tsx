@@ -55,7 +55,13 @@ const SOURCES: { value: ReservationSource; label: string }[] = [
   { value: "STAFF_ENTRY", label: "Manuell erfasst" },
 ];
 
-export function NewReservationDialog({ seatingAreas }: { seatingAreas: SeatingArea[] }) {
+export function NewReservationDialog({
+  seatingAreas,
+  currentUserId,
+}: {
+  seatingAreas: SeatingArea[];
+  currentUserId: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -88,6 +94,8 @@ export function NewReservationDialog({ seatingAreas }: { seatingAreas: SeatingAr
         message: data.message,
         source: data.source,
         status: "CONFIRMED",
+        createdBy: currentUserId,
+        updatedBy: currentUserId,
       });
       toast.success("Reservation erfasst");
       reset();

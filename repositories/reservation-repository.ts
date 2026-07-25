@@ -59,10 +59,16 @@ export interface ReservationRepository {
     },
   ): Promise<Reservation>;
   update(id: string, patch: Partial<Reservation>): Promise<Reservation>;
-  updateStatus(id: string, status: ReservationStatus): Promise<Reservation>;
+  updateStatus(id: string, status: ReservationStatus, updatedBy?: string): Promise<Reservation>;
   softDelete(id: string): Promise<void>;
   restore(id: string): Promise<void>;
-  /** ADMIN only in the UI — irreversible even in this mock store. */
+  /**
+   * Future ADMIN-only action — irreversible even in this mock store.
+   * Deliberately NOT called from any UI yet (see reservation-actions-panel.tsx):
+   * Managers and Admins must never permanently delete a record directly.
+   * Kept here so the method exists and is typed once the real confirmation
+   * flow + server-side safeguards are built.
+   */
   hardDelete(id: string): Promise<void>;
   addNote(
     reservationId: string,
@@ -116,8 +122,8 @@ export const reservationRepository: ReservationRepository = {
     reservations[idx] = { ...reservations[idx], ...patch, updatedAt: new Date().toISOString() };
     return reservations[idx];
   },
-  async updateStatus(id, status) {
-    return this.update(id, { status });
+  async updateStatus(id, status, updatedBy) {
+    return this.update(id, { status, ...(updatedBy ? { updatedBy } : {}) });
   },
   async softDelete(id) {
     await this.update(id, { deletedAt: new Date().toISOString() });

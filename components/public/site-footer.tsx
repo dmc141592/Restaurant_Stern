@@ -37,7 +37,6 @@ export async function SiteFooter() {
               </a>
             </li>
           </ul>
-          <p className="mt-3 text-[11px] text-primary-foreground/50">Demo-Kontakt – vor Veröffentlichung prüfen.</p>
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/60">Öffnungszeiten</p>

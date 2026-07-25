@@ -59,7 +59,6 @@ export default function RestaurantPage() {
             </ul>
           </div>
           <Image src={gardenImg} alt="Gartenrestaurant" className="rounded-lg object-cover" />
-          <p className="text-xs text-muted-foreground">Demo-Inhalt – vor Veröffentlichung prüfen.</p>
         </aside>
       </section>
     </>
