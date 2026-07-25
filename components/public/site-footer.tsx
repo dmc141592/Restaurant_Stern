@@ -1,8 +1,15 @@
 import Link from "next/link";
 import { MapPin, Phone } from "lucide-react";
+import { openingHoursRepository } from "@/repositories/opening-hours-repository";
 
-// Pure static chrome — no interactivity, safe as a Server Component.
-export function SiteFooter() {
+const WEEKDAY_LABELS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+
+// Pure presentational, but reads live from the same repository the staff
+// portal edits (openingHoursRepository) instead of hardcoding hours here —
+// there is exactly one source of truth for opening hours across the site.
+export async function SiteFooter() {
+  const hours = await openingHoursRepository.getWeeklyHours();
+
   return (
     <footer className="mt-24 border-t border-border bg-primary text-primary-foreground">
       <div className="container-page grid gap-10 py-14 md:grid-cols-4">
@@ -35,10 +42,14 @@ export function SiteFooter() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/60">Öffnungszeiten</p>
           <ul className="mt-3 space-y-1 text-sm">
-            <li>Mo – Do 11:30 – 23:00</li>
-            <li>Fr 11:30 – 24:00</li>
-            <li>Sa 17:30 – 24:00</li>
-            <li className="text-primary-foreground/70">So Ruhetag</li>
+            {hours.map((day) => (
+              <li key={day.weekday} className={day.closed ? "text-primary-foreground/70" : undefined}>
+                {WEEKDAY_LABELS[day.weekday]}{" "}
+                {day.closed
+                  ? (day.note ?? "Ruhetag")
+                  : day.slots.map((s) => `${s.open} – ${s.close}`).join(" · ")}
+              </li>
+            ))}
           </ul>
         </div>
         <div>

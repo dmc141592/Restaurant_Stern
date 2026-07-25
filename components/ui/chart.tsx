@@ -96,7 +96,11 @@ const ChartTooltip = RechartsPrimitive.Tooltip;
 
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
-  RechartsPrimitive.TooltipContentProps &
+  // Partial: these are supplied by Recharts at render time (it clones the
+  // element passed to `content` and injects them), not by the JSX call site
+  // — e.g. `<ChartTooltip content={<ChartTooltipContent />} />` has none of
+  // them set yet.
+  Partial<RechartsPrimitive.TooltipContentProps> &
     React.ComponentProps<"div"> & {
       hideLabel?: boolean;
       hideIndicator?: boolean;
